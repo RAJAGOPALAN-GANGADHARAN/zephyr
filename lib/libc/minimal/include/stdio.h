@@ -12,6 +12,7 @@
 #include <zephyr/toolchain.h>
 #include <stdarg.h>     /* Needed to get definition of va_list */
 #include <stddef.h>
+#include <zephyr/fs/fs_interface.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,16 +20,23 @@ extern "C" {
 
 #if !defined(__FILE_defined)
 #define __FILE_defined
-typedef int  FILE;
+typedef struct {
+	/* File descriptor vended by zephyr fs */
+	int fd;
+	/* Pointer to the Underlying file - fs file, socket etc. */
+	struct fs_file_t file_ref;
+	/* Error code while reading, writing */
+	int error_bit;
+} FILE;
 #endif
 
 #if !defined(EOF)
 #define EOF  (-1)
 #endif
 
-#define stdin  ((FILE *) 1)
-#define stdout ((FILE *) 2)
-#define stderr ((FILE *) 3)
+#define stdin (&(FILE) {.fd = 1})
+#define stdout (&(FILE) {.fd = 2})
+#define stderr (&(FILE) {.fd = 3})
 
 #define SEEK_SET	0	/* Seek from beginning of file.  */
 #define SEEK_CUR	1	/* Seek from current position.  */
@@ -59,7 +67,11 @@ int puts(const char *s);
 int fputc(int c, FILE *stream);
 int fputs(const char *ZRESTRICT s, FILE *ZRESTRICT stream);
 size_t fwrite(const void *ZRESTRICT ptr, size_t size, size_t nitems,
-	      FILE *ZRESTRICT stream);
+		  FILE *ZRESTRICT stream);
+size_t fread(const void *ZRESTRICT buffer, size_t size, size_t nitems,
+			  FILE *ZRESTRICT stream);
+FILE* fopen(const char * filename,
+                   const char * mode);
 #define putc(c, stream) fputc(c, stream)
 #define putchar(c) putc(c, stdout)
 
