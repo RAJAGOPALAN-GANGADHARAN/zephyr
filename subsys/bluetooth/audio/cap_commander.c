@@ -65,10 +65,11 @@ int bt_cap_commander_unregister_cb(const struct bt_cap_commander_cb *cb)
 
 static void
 cap_commander_discover_complete(struct bt_conn *conn, int err,
+				const struct bt_csip_set_coordinator_set_member *member,
 				const struct bt_csip_set_coordinator_csis_inst *csis_inst)
 {
 	if (cap_cb && cap_cb->discovery_complete) {
-		cap_cb->discovery_complete(conn, err, csis_inst);
+		cap_cb->discovery_complete(conn, err, member, csis_inst);
 	}
 }
 
@@ -410,7 +411,7 @@ static void cap_commander_proc_complete(void)
 		}
 		break;
 	case BT_CAP_COMMON_PROC_TYPE_VOLUME_MUTE_CHANGE:
-		if (cap_cb->volume_changed != NULL) {
+		if (cap_cb->volume_mute_changed != NULL) {
 			cap_cb->volume_mute_changed(failed_conn, err);
 		}
 		break;
