@@ -50,11 +50,11 @@ int main () {
    
     if (bytes_written != sizeof(data) - 1) {
         perror("fwrite failed");
-        fs_close(&fp->file_ref);
+        fs_close(&fp->_fs_file);
         return 1;
     }
    //  fs_close(&fp->file_ref);
-    fs_sync(&fp->file_ref);
+    fs_sync(&fp->_fs_file);
    //     size_t bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fp);
    //   buffer[bytes_read] = '\0';
    FILE* fp2 = fopen("/RAM:/file.txt", "r");

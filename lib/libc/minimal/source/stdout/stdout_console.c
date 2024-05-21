@@ -27,7 +27,7 @@ void __stdout_hook_install(int (*hook)(int c))
 
 int z_impl_zephyr_fputc(int c, FILE *stream)
 {
-	return (stream->fd == stdout->fd || stream->fd == stderr->fd) ? _stdout_hook(c) : EOF;
+	return (stream->_fd == stdout->_fd || stream->_fd == stderr->_fd) ? _stdout_hook(c) : EOF;
 }
 
 #ifdef CONFIG_USERSPACE
@@ -72,7 +72,7 @@ size_t z_impl_zephyr_fwrite(const void *ZRESTRICT ptr, size_t size,
 	size_t j;
 	const unsigned char *p;
 
-	if ((stream->fd != stdout->fd && stream->fd != stderr->fd) ||
+	if ((stream->_fd != stdout->_fd && stream->_fd != stderr->_fd) ||
 	    (nitems == 0) || (size == 0)) {
 		return 0;
 	}

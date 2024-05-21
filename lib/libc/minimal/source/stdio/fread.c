@@ -1,4 +1,8 @@
-/* stdin_fread.c */
+/*
+ * Copyright (c) 2024 Rajagopalan Gangadharan
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <stdio.h>
 #include <zephyr/sys/libc-hooks.h>
@@ -8,18 +12,19 @@
 size_t z_impl_zephyr_fread(const void *ZRESTRICT buffer, size_t size,
 			    size_t nitems, FILE *ZRESTRICT stream)
 {
-	size_t total_bytes = size * nitems;
-	if(total_bytes == 0)
-	{
-		stream->error_bit = 0;
-		return 0;
-	}
-	ssize_t rc = fs_read(&stream->file_ref, buffer, total_bytes);
-	if(rc < 0)
-	{
-		stream->error_bit = -rc;
-	}
-	return rc;
+	// size_t total_bytes = size * nitems;
+	// if(total_bytes == 0)
+	// {
+	// 	stream->error_bit = 0;
+	// 	return 0;
+	// }
+	// ssize_t rc = fs_read(&stream->file_ref, buffer, total_bytes);
+	// if(rc < 0)
+	// {
+	// 	stream->error_bit = -rc;
+	// }
+	// return rc;
+	return 0;
 }
 
 size_t fread(const void *ZRESTRICT buffer, size_t size, size_t nitems,

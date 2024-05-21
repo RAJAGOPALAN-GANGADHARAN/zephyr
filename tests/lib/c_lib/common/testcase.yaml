@@ -13,6 +13,22 @@ tests:
       - CONFIG_MINIMAL_LIBC=y
       - CONFIG_MINIMAL_LIBC_NON_REENTRANT_FUNCTIONS=y
       - CONFIG_MINIMAL_LIBC_RAND=y
+  libraries.libc.common.minimal.stdio:
+    filter: CONFIG_MINIMAL_LIBC_SUPPORTED
+    tags: minimal_libc_stdio
+    integration_platforms:
+      - qemu_x86
+    min_ram: 32
+    extra_configs:
+      - CONFIG_MINIMAL_LIBC=y
+      - CONFIG_PICOLIBC=n
+      - CONFIG_FILE_SYSTEM=y
+      - CONFIG_LOG=y
+      - CONFIG_FAT_FILESYSTEM_ELM=y
+      - CONFIG_POSIX_API=y
+      - CONFIG_POSIX_FS=y
+      - CONFIG_HEAP_MEM_POOL_SIZE=4096
+      - CONFIG_COMMON_LIBC_MALLOC_ARENA_SIZE=8192
   libraries.libc.common.newlib:
     filter: CONFIG_NEWLIB_LIBC_SUPPORTED
     min_ram: 32

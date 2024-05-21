@@ -1,48 +1,62 @@
+/*
+ * Copyright (c) 2024 Rajagopalan Gangadharan
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <zephyr/fs/fs.h>
-#include <zephyr/kernel.h>
 #include <zephyr/sys/fdtable.h>
 
-FILE* zephyr_fopen(const char* filename, const char* mode) 
+int _convert_mode_to_flag(const char *mode, bool *truncate)
 {
-    size_t mode_len = strlen(mode);
-    if(mode_len <= 0 || mode_len >= 3) {
-        return NULL;
-    } 
-    
     int flag = 0;
-    bool destory_file_contents = false;
-    
-    switch (mode[0])
+	switch (*mode++)
     {
         case 'r':
             flag = FS_O_READ;
             break;
         case 'w':
             flag = FS_O_WRITE | FS_O_CREATE;
-            destory_file_contents = true;
+            *truncate = true;
             break;
         case 'a':
             flag = FS_O_APPEND | FS_O_CREATE;
             break;
         default:
-            return NULL;
+            errno = EINVAL;
+            return 0;
     }
 
-    if(mode_len == 2)
-    {
-        if(mode[1] == '+') {
-            flag = flag | FS_O_RDWR;
-        }
-        else {
-            return NULL;
-        }
+    if (*mode == '+' || (*mode == 'b' && mode[1] == '+')) {
+		flag = flag | FS_O_RDWR;
+	}
+
+    return flag;
+}
+
+FILE* zephyr_fopen(const char *ZRESTRICT filename, const char *ZRESTRICT mode) 
+{
+    /**
+     * TODO:
+     * File doesnt exist
+     * path too long
+     * 
+    */
+    
+    bool truncate_file = false;
+    int flag = _convert_mode_to_flag(mode, &truncate_file);
+    if(!flag) {
+        errno = EINVAL;
+        return NULL;
     }
 
     int fd = z_reserve_fd();
     if(fd < 0) {
+        errno = ENFILE;
         return NULL;
     }
 
@@ -50,21 +64,40 @@ FILE* zephyr_fopen(const char* filename, const char* mode)
 	fs_file_t_init(&zfs_file);
     int rc = fs_open(&zfs_file, filename, flag);
     if(rc != 0) {
+        /**
+         *  TODO: Error code conversion here
+         */
         z_free_fd(fd);
         return NULL;
     }
 
-    if(destory_file_contents) {
-        fs_truncate(&zfs_file, 0);
+    FILE* file_rep = malloc(sizeof(FILE));
+    if(file_rep == NULL) {
+        errno = ENOMEM;
+        z_free_fd(fd);
+        fs_close(&zfs_file);
+        return NULL;
     }
 
-    FILE* file_rep = malloc(sizeof(FILE));
-    file_rep->fd = fd;
-    file_rep->file_ref = zfs_file;
+    if(truncate_file) {
+        rc = fs_truncate(&zfs_file, 0);
+        if(rc < 0) {
+            /**
+            *  TODO: Error code conversion here
+            */
+            z_free_fd(fd);
+            fs_close(&zfs_file);
+            return NULL;
+        }
+    }
+    /** Finalize z fd call here*/
+    
+    file_rep->_fd = fd;
+    file_rep->_fs_file = zfs_file;
     return file_rep;
 }
 
-FILE* fopen(const char* filename, const char* mode) 
+FILE* fopen(const char *ZRESTRICT filename, const char *ZRESTRICT mode)
 {
     return zephyr_fopen(filename, mode);
 }

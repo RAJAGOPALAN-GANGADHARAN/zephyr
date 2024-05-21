@@ -21,12 +21,12 @@ extern "C" {
 #if !defined(__FILE_defined)
 #define __FILE_defined
 typedef struct {
-	/* File descriptor vended by zephyr fs */
-	int fd;
-	/* Pointer to the Underlying file - fs file, socket etc. */
-	struct fs_file_t file_ref;
+	/* File descriptor vended by zephyr fd table */
+	int _fd;
+	/* Underlying file - zfs file */
+	struct fs_file_t _fs_file;
 	/* Error code while reading, writing */
-	int error_bit;
+	int _error_bit;
 } FILE;
 #endif
 
@@ -34,9 +34,9 @@ typedef struct {
 #define EOF  (-1)
 #endif
 
-#define stdin (&(FILE) {.fd = 1})
-#define stdout (&(FILE) {.fd = 2})
-#define stderr (&(FILE) {.fd = 3})
+#define stdin (&(FILE) {._fd = 1})
+#define stdout (&(FILE) {._fd = 2})
+#define stderr (&(FILE) {._fd = 3})
 
 #define SEEK_SET	0	/* Seek from beginning of file.  */
 #define SEEK_CUR	1	/* Seek from current position.  */
