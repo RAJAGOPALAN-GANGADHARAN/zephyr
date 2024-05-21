@@ -168,6 +168,25 @@ int fs_open(struct fs_file_t *zfp, const char *file_name, fs_mode_t flags)
 		return rc;
 	}
 
+	if (flags & FS_O_TRUNC) {
+		if ((flags & FS_O_WRITE) == 0) {
+			/** Truncate not allowed when file is not opened for write */
+			LOG_ERR("file should be opened for write to truncate!!");
+			return -EACCES;
+		}
+		CHECKIF(mp->fs->truncate == NULL) {
+			LOG_ERR("file truncation not supported!!");
+			return -ENOTSUP;
+		}
+		/* Truncate the opened file to 0 length */
+		rc = mp->fs->truncate(zfp, 0);
+		if (rc < 0) {
+			LOG_ERR("file truncation failed (%d)", rc);
+			zfp->mp = NULL;
+			return rc;
+		}
+	}
+
 	/* Copy flags to zfp for use with other fs_ API calls */
 	zfp->flags = flags;
 

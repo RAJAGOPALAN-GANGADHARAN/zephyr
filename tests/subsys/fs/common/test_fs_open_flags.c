@@ -149,9 +149,13 @@ void test_fs_open_flags(void)
 	ZOPEN(&ts, FS_O_READ, -ENOENT);
 	ZOPEN(&ts, FS_O_RDWR, -ENOENT);
 	ZOPEN(&ts, FS_O_APPEND, -ENOENT);
+	ZOPEN(&ts, FS_O_TRUNC, -ENOENT);
 	ZOPEN(&ts, FS_O_APPEND | FS_O_READ, -ENOENT);
 	ZOPEN(&ts, FS_O_APPEND | FS_O_WRITE, -ENOENT);
 	ZOPEN(&ts, FS_O_APPEND | FS_O_RDWR, -ENOENT);
+	ZOPEN(&ts, FS_O_TRUNC | FS_O_RDWR, -ENOENT);
+	ZOPEN(&ts, FS_O_TRUNC | FS_O_APPEND, -ENOENT);
+	ZOPEN(&ts, FS_O_TRUNC | FS_O_RDWR | FS_O_APPEND, -ENOENT);
 	ZEND();
 
 
@@ -319,6 +323,70 @@ void test_fs_open_flags(void)
 	ZUNLINK(&ts);
 	ZEND();
 
+	/** FS_O_TRUNC tests */
+	ZBEGIN("Attempt truncate a new file without write access");
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_CREATE | FS_O_TRUNC, -EACCES);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
+
+	ZBEGIN("Attempt truncate a new file with write access");
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_CREATE | FS_O_WRITE | FS_O_TRUNC, 0);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
+
+	ZBEGIN("Attempt truncate existing with no write access");
+	ZMKEMPTY(&ts);
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_TRUNC, -EACCES);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
+
+	ZBEGIN("Attempt truncate existing with write access");
+	ZMKEMPTY(&ts);
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_TRUNC | FS_O_WRITE, 0);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
+
+	ZBEGIN("Attempt truncate existing with read access");
+	ZMKEMPTY(&ts);
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_READ | FS_O_TRUNC, -EACCES);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
+
+	ZBEGIN("Attempt truncate existing with R/W access");
+	ZMKEMPTY(&ts);
+#ifndef BYPASS_FS_OPEN_FLAGS_LFS_RW_IS_DEFAULT
+	ZOPEN(&ts, FS_O_RDWR | FS_O_TRUNC, 0);
+	ZCLOSE(&ts);
+#else
+	TC_PRINT("Test bypassed\n");
+#endif
+	ZUNLINK(&ts);
+	ZEND();
 
 	/* This is simple check by file position, not contents. Since writing
 	 * same pattern twice, the position of file should be twice the
@@ -352,6 +420,26 @@ void test_fs_open_flags(void)
 	ZREWIND(&ts);
 	ZWRITE(&ts, ts.write_size);
 	ZCHKPOS(&ts, ts.write_size * 2);
+	ZCLOSE(&ts);
+	ZUNLINK(&ts);
+	ZEND();
+
+
+	ZBEGIN("Check if file is truncated with data");
+	/* Prepare file */
+	ZUNLINK(&ts);
+	ZOPEN(&ts, FS_O_CREATE | FS_O_WRITE, 0);
+	ZWRITE(&ts, ts.write_size);
+	ZCLOSE(&ts);
+
+	/* Make sure file has the content */
+	ZOPEN(&ts, FS_O_CREATE | FS_O_READ, 0);
+	ZREAD(&ts, ts.write_size);
+	ZCLOSE(&ts);
+
+	ZOPEN(&ts, FS_O_TRUNC | FS_O_RDWR, 0);
+	ZCHKPOS(&ts, 0);
+	ZREAD(&ts, 0);
 	ZCLOSE(&ts);
 	ZUNLINK(&ts);
 	ZEND();

@@ -162,6 +162,8 @@ struct fs_statvfs {
 #define FS_O_APPEND     0x20
 /** Bitmask for open/create flags */
 #define FS_O_FLAGS_MASK 0x30
+/** Truncate the file while opening */
+#define FS_O_TRUNC      0x40
 
 /** Bitmask for open flags */
 #define FS_O_MASK       (FS_O_MODE_MASK | FS_O_FLAGS_MASK)
@@ -268,6 +270,7 @@ static inline void fs_dir_t_init(struct fs_dir_t *zdp)
  *   - @c FS_O_RDWR open for read/write (<tt>FS_O_READ | FS_O_WRITE</tt>)
  *   - @c FS_O_CREATE create file if it does not exist
  *   - @c FS_O_APPEND move to end of file before each write
+ *   - @c FS_O_TRUNC truncate the file
  *
  * @warning If @p flags are set to 0 the function will open file, if it exists
  *          and is accessible, but you will have no read/write access to it.
