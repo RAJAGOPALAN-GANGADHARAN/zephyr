@@ -8,6 +8,9 @@ zephyr_linker_section_obj_level(SECTION init LEVEL POST_KERNEL)
 zephyr_linker_section_obj_level(SECTION init LEVEL APPLICATION)
 zephyr_linker_section_obj_level(SECTION init LEVEL SMP)
 
+zephyr_linker_section(NAME deferred_init_list KVMA RAM_REGION GROUP RODATA_REGION)
+zephyr_linker_section_configure(SECTION deferred_init_list INPUT ".z_deferred_init*" KEEP SORT NAME)
+
 zephyr_iterable_section(NAME device NUMERIC KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN CONFIG_LINKER_ITERABLE_SUBALIGN)
 
 if(CONFIG_GEN_SW_ISR_TABLE AND NOT CONFIG_DYNAMIC_INTERRUPTS)
@@ -204,6 +207,14 @@ endif()
 
 if (CONFIG_HTTP_SERVER)
   zephyr_iterable_section(NAME http_service_desc KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN CONFIG_LINKER_ITERABLE_SUBALIGN)
+endif()
+
+if (CONFIG_COAP_SERVER)
+  zephyr_iterable_section(NAME coap_service KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN CONFIG_LINKER_ITERABLE_SUBALIGN)
+endif()
+
+if (CONFIG_NET_MGMT)
+  zephyr_iterable_section(NAME net_mgmt_event_static_handler KVMA RAM_REGION GROUP RODATA_REGION SUBALIGN CONFIG_LINKER_ITERABLE_SUBALIGN)
 endif()
 
 if(CONFIG_INPUT)
