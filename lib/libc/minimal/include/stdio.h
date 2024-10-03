@@ -22,6 +22,9 @@ extern "C" {
 #define __FILE_defined
 #if defined(CONFIG_FDTABLE)
 typedef struct fd_entry  FILE;
+static ssize_t f_read_vmeth(void *obj, void *buffer, size_t count);
+static ssize_t f_write_vmeth(void *obj, const void *buffer, size_t count);
+static ssize_t f_write_vmeth(void *obj, const void *buffer, size_t count);
 #else
 typedef int FILE;
 #endif
